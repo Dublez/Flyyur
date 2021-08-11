@@ -37,25 +37,53 @@ venue_genres = db.Table('venue_genres',
 
 
 
-venue_shows = db.Table('venue_shows', 
-  db.Column('venue_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True),
-  db.Column('show_id', db.Integer, db.ForeignKey('Show.id'), primary_key=True)
-)
-
-venue_city = db.Table('venue_city',
-  db.Column('venue_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True),
-  db.Column('city_id', db.Integer, db.ForeignKey('City.id'), primary_key=True)
+artist_genres = db.Table('artist_genres',
+  db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True),
+  db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id'), primary_key=True)
 )
 
 
-class City(db.Model):
-  __tablename__ = 'City'
+
+class Genre(db.Model):
+  __tablename__ = 'Genre'
+  
+  id = db.Column(db.Integer, primary_key=True)
+  name = db.Column(db.String, nullable=False)
+  
+  def __repr__(self):
+      return f'<Genre {self.id} {self.name}>'
+
+
+class Artist(db.Model):
+    __tablename__ = 'Artist'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    city_id = db.Column(db.Integer, db.ForeignKey('City.id'), nullable=False)
+    phone = db.Column(db.String(120))
+    genres = db.relationship('Genre', secondary=artist_genres, 
+      backref=db.backref('artists', lazy=True))
+    image_link = db.Column(db.String(500))
+    facebook_link = db.Column(db.String(120))
+    website = db.Column(db.String),
+    seeking_venue = db.Column(db.Boolean, nullable=False),
+    seeking_description=db.Column(db.String(3000))
+    shows = db.relationship('Show', backref=db.backref('artists', lazy=True))
+
+    def __repr__(self):
+      return f'<Artist {self.id} {self.name}>'
+
+
+class Show(db.Model):
+  __tablename__ = 'Show'
 
   id = db.Column(db.Integer, primary_key=True)
-  city_name = db.Column(db.String(120), nullable=False)
-  city_state = db.Column(db.String(120), nullable=False)
-  city_venues = db.relationship('Venue', backref='city', lazy=True)
-  city_artists = db.relationship('Artist', backref='city', lazy=True)
+  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
+  start_time = db.Column(db.DateTime, nullable=False)
+
+  def __repr__(self):
+    return f'<Show {self.id} {self.venue_id} {self.artist_id} {self.start_time}>'
 
 
 class Venue(db.Model):
@@ -73,57 +101,30 @@ class Venue(db.Model):
     seeking_description = db.Column(db.String(3000))
     genres = db.relationship('Genre', secondary=venue_genres,
       backref=db.backref('venues', lazy=True))
-    shows = db.relationship('Show', secondary=venue_shows, 
-      backref=db.backref('venues', lazy=True))
+    shows = db.relationship('Show', backref=db.backref('venues', lazy=True))
+
+    def __repr__(self):
+      return f'<Venue {self.id} {self.name}>'
 
 
 
-class Genre(db.Model):
-  __tablename__ = 'Genre'
-  
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String, nullable=False)
-
-
-
-class Show(db.Model):
-  __tablename__ = 'Show'
+class City(db.Model):
+  __tablename__ = 'City'
 
   id = db.Column(db.Integer, primary_key=True)
-  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
-  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
-  start_time = db.Column(db.DateTime, nullable=False)
+  name = db.Column(db.String(120), nullable=False)
+  state = db.Column(db.String(120), nullable=False)
+  city_venues = db.relationship('Venue', backref='city', lazy=True)
+  city_artists = db.relationship('Artist', backref='city', lazy=True)
+
+  def __repr__(self):
+    return f'<City {self.id} {self.name}>'
+
+
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 
-artist_genres = db.Table('artist_genres',
-  db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True),
-  db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id'), primary_key=True)
-)
-
-artist_shows = db.Table('artist_shows', 
-  db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True),
-  db.Column('show_id', db.Integer, db.ForeignKey('Show.id'), primary_key=True)
-)
-
-class Artist(db.Model):
-    __tablename__ = 'Artist'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    city_id = db.Column(db.Integer, db.ForeignKey('City.id'), nullable=False)
-    phone = db.Column(db.String(120))
-    genres = db.relationship('Genre', secondary=artist_genres, 
-      backref=db.backref('artists', lazy=True))
-    image_link = db.Column(db.String(500))
-    facebook_link = db.Column(db.String(120))
-    website = db.Column(db.String),
-    seeking_venue = db.Column(db.Boolean, nullable=False),
-    seeking_description=db.Column(db.String(3000))
-    shows = db.relationship('Show', secondary=artist_shows, 
-      backref=db.backref('artists', lazy=True))
-    
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
